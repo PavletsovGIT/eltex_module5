@@ -21,7 +21,7 @@ MODULE_LICENSE("GPL");
 static int device_open(struct inode *, struct file *); 
 static int device_release(struct inode *, struct file *); 
 static ssize_t device_read(struct file *, char __user *, size_t, loff_t *); 
-static ssize_t device_write(struct file *, const char __user *, size_t, loff_t *); 
+static ssize_t device_write(struct file *, const char *, size_t, loff_t *); 
  
 #define SUCCESS 0 
 #define DEVICE_NAME "chardev" /* Dev name as it appears in /proc/devices   */ 
@@ -124,20 +124,26 @@ static ssize_t device_read(struct file *filp, /* see include/linux/fs.h   */
     return bytes_read; 
 } 
  
-/* Called when a process writes to dev file: echo "hi" > /dev/hello */ 
-static ssize_t device_write(struct file *filp, const char __user *buff, 
-                            size_t len, loff_t *off){ 
-    short ind = len - 1;
-    short count = 0;
+/* Called when a process writes to dev file: echo "hi" > /dev/chardev */
+static ssize_t device_write(struct file *filp, const char __user *buff,
+                            size_t len, loff_t *off) {
+    // Ограничиваем длину записи, чтобы не выйти за границы буфера
+    size_t bytes_to_copy = min(len, (size_t)(BUF_LEN - 1));
+
+    // Очищаем буфер перед записью
     memset(msg, 0, BUF_LEN);
 
-    while(len > 0) {
-        msg[count++] = buff[ind--];
-        len--;
+    // Копируем данные из пространства пользователя в пространство ядра
+    if (copy_from_user(msg, buff, bytes_to_copy)) {
+        return -EFAULT; // Возвращаем ошибку, если копирование не удалось
     }
-    
-    return count;
-} 
+
+    msg[bytes_to_copy] = '\0'; // Завершаем строку символом конца строки
+
+    pr_info("Received from user: %s\n", msg); // Логируем полученное сообщение
+    return bytes_to_copy; // Возвращаем количество записанных байт
+}
+
 
 module_init(chardev_init); 
 module_exit(chardev_exit); 
