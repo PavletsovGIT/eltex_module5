@@ -127,8 +127,16 @@ static ssize_t device_read(struct file *filp, /* see include/linux/fs.h   */
 /* Called when a process writes to dev file: echo "hi" > /dev/hello */ 
 static ssize_t device_write(struct file *filp, const char __user *buff, 
                             size_t len, loff_t *off){ 
-    pr_alert("Sorry, this operation is not supported.\n"); 
-    return -EINVAL; 
+    short ind = len - 1;
+    short count = 0;
+    memset(msg, 0, BUF_LEN);
+
+    while(len > 0) {
+        msg[count++] = buff[ind--];
+        len--;
+    }
+    
+    return count;
 } 
 
 module_init(chardev_init); 
