@@ -4,27 +4,33 @@
 #include <linux/skbuff.h>
 #include <net/net_namespace.h>
 
-#define NETLINK_USER 31
+MODULE_AUTHOR("Feodor Pavletsov")
+MODULE_LICENSE("GPL");
+
+#define NETLINK_USER  31
+#define KERN_TAG      " by kernel"
+#define MAX_PAYLOAD   1024
 
 struct sock *nl_sk = NULL;
 
-static void hello_nl_recv_msg(struct sk_buff *skb)
+static void echo_nl_recv_msg(struct sk_buff *skb)
 {
 
     struct nlmsghdr *nlh;
     int pid;
     struct sk_buff *skb_out;
     int msg_size;
-    char *msg = "Hello from kernel";
+    char msg[MAX_PAYLOAD] = {0};
     int res;
 
     printk(KERN_INFO "Entering: %s\n", __FUNCTION__);
 
-    msg_size = strlen(msg);
-
     nlh = (struct nlmsghdr *)skb->data;
     printk(KERN_INFO "Netlink received msg payload: %s\n", (char *)nlmsg_data(nlh));
     pid = nlh->nlmsg_pid; /*pid of sending process */
+
+    snprintf(msg, MAX_PAYLOAD, "%s%s", (char *)nlmsg_data(nlh), KERN_TAG);
+    msg_size = strlen(msg);
 
     skb_out = nlmsg_new(msg_size, 0);
 
@@ -51,7 +57,7 @@ struct netlink_kernel_cfg cfg = {
    .input = hello_nl_recv_msg,
 };
 
-static int __init hello_init(void)
+static int __init echo_init(void)
 {
 
     printk("Entering: %s\n", __FUNCTION__);
@@ -68,13 +74,11 @@ static int __init hello_init(void)
     return 0;
 }
 
-static void __exit hello_exit(void)
+static void __exit echo_exit(void)
 {
 
-    printk(KERN_INFO "exiting hello module\n");
+    printk(KERN_INFO "exiting echo module\n");
     netlink_kernel_release(nl_sk);
 }
 module_init(hello_init);
 module_exit(hello_exit);
-
-MODULE_LICENSE("GPL");

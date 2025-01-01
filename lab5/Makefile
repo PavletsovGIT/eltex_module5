@@ -8,14 +8,14 @@ clean:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 	rm -r unetlink.out
 
-kernnl:
+k:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
 
-usersp:
+u:
 	gcc -Wall unetlink.c -o unetlink.out
 
 cleank:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
 
 cleanu:
-	rm -r unetlink
+	rm -r unetlink.out

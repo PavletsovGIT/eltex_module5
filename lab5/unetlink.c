@@ -7,11 +7,13 @@
 #define NETLINK_USER 31
 
 #define MAX_PAYLOAD 1024 /* maximum payload size*/
+
 struct sockaddr_nl src_addr, dest_addr;
 struct nlmsghdr *nlh = NULL;
 struct iovec iov;
 int sock_fd;
 struct msghdr msg;
+char usrmsg[MAX_PAYLOAD] = {0};
 
 int main()
 {
@@ -37,7 +39,12 @@ int main()
     nlh->nlmsg_pid = getpid();
     nlh->nlmsg_flags = 0;
 
-    strcpy(NLMSG_DATA(nlh), "Hello");
+    printf("Enter message to kernel: ");
+    fgets(usrmsg, MAX_PAYLOAD, stdin);
+    fflush(stdin);
+    usrmsg[strlen(usrmsg) - 1] = '\0';
+
+    strcpy(NLMSG_DATA(nlh), usrmsg);
 
     iov.iov_base = (void *)nlh;
     iov.iov_len = nlh->nlmsg_len;
