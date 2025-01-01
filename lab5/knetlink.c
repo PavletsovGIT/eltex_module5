@@ -4,7 +4,7 @@
 #include <linux/skbuff.h>
 #include <net/net_namespace.h>
 
-MODULE_AUTHOR("Feodor Pavletsov")
+MODULE_AUTHOR("Feodor Pavletsov");
 MODULE_LICENSE("GPL");
 
 #define NETLINK_USER  31
@@ -54,7 +54,7 @@ static void echo_nl_recv_msg(struct sk_buff *skb)
 
 struct netlink_kernel_cfg cfg = {
    .groups  = 1,
-   .input = hello_nl_recv_msg,
+   .input = echo_nl_recv_msg,
 };
 
 static int __init echo_init(void)
@@ -80,5 +80,5 @@ static void __exit echo_exit(void)
     printk(KERN_INFO "exiting echo module\n");
     netlink_kernel_release(nl_sk);
 }
-module_init(hello_init);
-module_exit(hello_exit);
+module_init(echo_init);
+module_exit(echo_exit);
